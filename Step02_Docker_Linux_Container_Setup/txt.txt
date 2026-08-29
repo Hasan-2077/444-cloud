@@ -1,0 +1,1 @@
+docker image is a packaged blueprint that contains everything required to run an application - code, dependencies, and setting, etc. A docker container is a running instance of that image. Simply put, the image is the template, while the container is the actual application running from that template.
