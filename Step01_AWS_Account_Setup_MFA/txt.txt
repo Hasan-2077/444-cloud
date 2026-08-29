@@ -1,0 +1,1 @@
+Root user MFA and least-privilege access help prevent major cloud security breaches. MFA protects the root account from unauthorized access, while least-privilege limits users and applications to only the permissions they need. Together, they reduce the risk of stolen credentials leading to widespread data theft or account takeover.
