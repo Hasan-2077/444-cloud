@@ -1,0 +1,38 @@
+Week 3: AWS CLI EC2 and Environment Variables
+
+Student: Md. Mahmudul Hasan
+Course: ITMO 544 
+AWS Region: us-east-2 (Ohio)
+
+1. AWS CLI Command Syntax
+
+I used `aws ec2 describe-instances --region us-east-2 --output table` to check for EC2 instances. In this command, `aws` is the executable, `ec2` is the service, and `describe-instances` is the operation. The parameters specify the region and output format.
+
+2. Basic Instance and Web Server
+
+I launched a basic Amazon Linux 2023 instance using the t3.micro instance type, verified that it was running, and terminated it. I then launched a web server with a security group allowing HTTP on port 80 and SSH on port 22 restricted to my public IP address. The user-data script installed Apache and created a “Hello from…” webpage. I successfully opened the webpage in my browser and terminated the web instance afterward.
+
+3. Environment Configuration
+
+I stored the region, AMI ID, key-pair name, security group ID, subnet ID, instance type, instance count, and name tag in a local `.env` file. I set `INSTANCE_COUNT=2`. I verified that `.gitignore` excludes `.env` and committed `.env.example` with placeholder values.
+
+4. Creating Two Instances
+
+The `create_instances.sh` script loaded the environment settings, launched two EC2 instances, and saved their IDs in `instance_ids.txt`. Both instances reached the running state.
+
+The instance IDs were:
+
+`i-0d5b6bd047499cb77`
+`i-037e5f0598802ef08`
+
+5. Termination and Cleanup
+
+The `delete_instances.sh` script read the saved instance IDs, requested termination, and waited until both instances terminated. It then removed `instance_ids.txt`. A final check returned no non-terminated EC2 instances in us-east-2.
+
+6. Why Environment Files Are Excluded from Git
+
+Environment files should be excluded from Git because they can contain credentials and configuration specific to an account or deployment. Even a private repository can expose these values through collaborators, compromised accounts, or a later change in visibility. Git also preserves file history, so deleting a sensitive file from the latest version does not remove it from earlier commits. In this lab, I kept the actual settings in a local `.env` file and shared `.env.example` with placeholders. This allows someone else to understand the required configuration without committing my environment file.
+
+Repository
+
+https://github.com/Hasan-2077/444-cloud/tree/main/week03-ec2
