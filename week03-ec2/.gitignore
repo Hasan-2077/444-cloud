@@ -1,0 +1,6 @@
+.env
+*.pem
+instance_ids.txt
+.aws/
+*accessKeys.csv
+*credentials.csv
