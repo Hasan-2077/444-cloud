@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
     <html lang="en">
     <head><meta charset="utf-8"><title>Uploader</title></head>
     <body>
-      <h1>Uploader</h1>
+      <h1>Uploader - Version 2</h1>
       <form method="POST" action="/upload" enctype="multipart/form-data">
         <input type="file" name="txtfile" accept=".txt" required>
         <p>Only .txt files, max 1MB</p>

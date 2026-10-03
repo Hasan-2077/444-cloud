@@ -1,0 +1,19 @@
+{
+    "RoleName": "itmo-444-544-viewer-role",
+    "PolicyName": "viewer-s3-policy",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::itmo-444-544-hasan-133857166309-fileshare/shared.txt"
+            },
+            {
+                "Effect": "Allow",
+                "Action": "s3:ListBucket",
+                "Resource": "arn:aws:s3:::itmo-444-544-hasan-133857166309-fileshare"
+            }
+        ]
+    }
+}

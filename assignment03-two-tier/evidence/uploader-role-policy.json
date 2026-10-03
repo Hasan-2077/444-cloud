@@ -1,0 +1,14 @@
+{
+    "RoleName": "itmo-444-544-uploader-role",
+    "PolicyName": "uploader-s3-policy",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "s3:PutObject",
+                "Resource": "arn:aws:s3:::itmo-444-544-hasan-133857166309-fileshare/shared.txt"
+            }
+        ]
+    }
+}
