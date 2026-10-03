@@ -1,0 +1,8 @@
+
+.env
+*.pem
+*.key
+*credentials*.csv
+node_modules/
+.generated/
+.stack-state/
