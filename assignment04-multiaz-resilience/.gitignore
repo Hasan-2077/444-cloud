@@ -1,0 +1,13 @@
+
+.env
+*.pem
+*.key
+*credentials*.csv
+node_modules/
+.generated/
+.stack-state/
+
+stack_outputs.env
+
+__pycache__/
+*.pyc
