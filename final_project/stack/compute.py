@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import base64
-import io
 import logging
-import tarfile
-from pathlib import Path
 
 from botocore.exceptions import ClientError
 
@@ -17,99 +14,11 @@ from stack.config import Settings, Tier
 log = logging.getLogger("stack")
 
 
-def _archive_add(
-    archive: tarfile.TarFile,
-    source: Path,
-    arcname: str,
-) -> None:
-    """Add one runtime file to the deployment archive."""
+REPO_URL = (
+    "https://github.com/Hasan-2077/444-cloud.git"
+)
 
-    if not source.exists():
-        return
-
-    archive.add(
-        source,
-        arcname=arcname,
-        recursive=False,
-    )
-
-
-def build_runtime_archive(
-    settings: Settings,
-    tier: Tier,
-) -> str:
-    """
-    Package the Node application plus shared runtime modules.
-
-    node_modules and tests are intentionally excluded because
-    npm installs production dependencies on the EC2 instance.
-    """
-
-    buffer = io.BytesIO()
-
-    with tarfile.open(
-        fileobj=buffer,
-        mode="w:gz",
-    ) as archive:
-        app_name = tier.app_dir.name
-
-        for filename in (
-            "app.js",
-            "package.json",
-            "package-lock.json",
-        ):
-            _archive_add(
-                archive,
-                tier.app_dir / filename,
-                f"{app_name}/{filename}",
-            )
-
-        lib_dir = tier.app_dir / "lib"
-
-        if lib_dir.exists():
-            for path in sorted(
-                lib_dir.rglob("*")
-            ):
-                if path.is_file():
-                    relative = path.relative_to(
-                        tier.app_dir
-                    )
-
-                    _archive_add(
-                        archive,
-                        path,
-                        f"{app_name}/{relative}",
-                    )
-
-        shared_dir = (
-            tier.app_dir.parent
-            / "shared"
-            / "lib"
-        )
-
-        if not shared_dir.exists():
-            raise FileNotFoundError(
-                "Shared runtime directory was not found: "
-                f"{shared_dir}"
-            )
-
-        for path in sorted(
-            shared_dir.rglob("*")
-        ):
-            if path.is_file():
-                relative = path.relative_to(
-                    tier.app_dir.parent
-                )
-
-                _archive_add(
-                    archive,
-                    path,
-                    str(relative),
-                )
-
-    return base64.b64encode(
-        buffer.getvalue()
-    ).decode("ascii")
+REPO_DIR = "/opt/444-cloud"
 
 
 def environment_for(
@@ -232,7 +141,8 @@ def systemd_unit(
     )
 
     app_root = (
-        f"/opt/{tier.app_dir.name}"
+        f"{REPO_DIR}/final_project/"
+        f"{tier.app_dir.name}"
     )
 
     return f"""[Unit]
@@ -260,16 +170,7 @@ def build_user_data(
     *,
     alb_dns_name: str | None = None,
 ) -> str:
-    """
-    Build Python-only EC2 user-data.
-
-    No shell deployment script is used.
-    """
-
-    archive_b64 = build_runtime_archive(
-        settings,
-        tier,
-    )
+    """Build small Python-only EC2 user-data."""
 
     environment = environment_for(
         settings,
@@ -283,7 +184,8 @@ def build_user_data(
     )
 
     app_root = (
-        f"/opt/{tier.app_dir.name}"
+        f"{REPO_DIR}/final_project/"
+        f"{tier.app_dir.name}"
     )
 
     service_path = (
@@ -292,18 +194,17 @@ def build_user_data(
     )
 
     return f'''#!/usr/bin/env python3
-import base64
-import io
 import pathlib
+import shutil
 import subprocess
-import tarfile
 
 
-ARCHIVE_B64 = {archive_b64!r}
-SERVICE_TEXT = {unit_text!r}
+REPO_URL = {REPO_URL!r}
+REPO_DIR = {REPO_DIR!r}
 APP_ROOT = {app_root!r}
 SERVICE_PATH = {service_path!r}
 SERVICE_NAME = {tier.service_name!r}
+SERVICE_TEXT = {unit_text!r}
 
 
 def run(command, cwd=None):
@@ -314,48 +215,36 @@ def run(command, cwd=None):
     )
 
 
-def extract_runtime():
-    payload = base64.b64decode(
-        ARCHIVE_B64
-    )
-
-    with tarfile.open(
-        fileobj=io.BytesIO(payload),
-        mode="r:gz",
-    ) as archive:
-        destination = pathlib.Path("/opt")
-
-        for member in archive.getmembers():
-            resolved = (
-                destination
-                / member.name
-            ).resolve()
-
-            if not str(resolved).startswith(
-                str(destination.resolve())
-                + "/"
-            ):
-                raise RuntimeError(
-                    "Unsafe archive path: "
-                    + member.name
-                )
-
-        archive.extractall(
-            path=destination
-        )
-
-
 def main():
     run(
         [
             "dnf",
             "install",
             "-y",
+            "git",
             "nodejs",
         ]
     )
 
-    extract_runtime()
+    repo_path = pathlib.Path(
+        REPO_DIR
+    )
+
+    if repo_path.exists():
+        shutil.rmtree(
+            repo_path
+        )
+
+    run(
+        [
+            "git",
+            "clone",
+            "--depth",
+            "1",
+            REPO_URL,
+            REPO_DIR,
+        ]
+    )
 
     run(
         [
@@ -377,23 +266,9 @@ def main():
             "chown",
             "-R",
             "ec2-user:ec2-user",
-            APP_ROOT,
+            REPO_DIR,
         ]
     )
-
-    shared = pathlib.Path(
-        "/opt/shared"
-    )
-
-    if shared.exists():
-        run(
-            [
-                "chown",
-                "-R",
-                "ec2-user:ec2-user",
-                str(shared),
-            ]
-        )
 
     run(
         [
