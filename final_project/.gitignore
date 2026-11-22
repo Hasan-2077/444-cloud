@@ -1,0 +1,29 @@
+# Secrets
+.env
+.env.before-final-project
+*.pem
+*.key
+*.crt
+credentials*
+*.csv
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Generated deployment state
+stack_outputs.json
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

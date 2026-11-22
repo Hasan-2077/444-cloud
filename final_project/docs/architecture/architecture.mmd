@@ -1,0 +1,48 @@
+flowchart TD
+
+    USER["User Browser"]
+
+    ALB["Application Load Balancer"]
+
+    ADVISOR["Advisor Tier
+    Node.js / Express
+    EC2 Auto Scaling Group"]
+
+    WEATHER["Weather Data Tier
+    Node.js / Express
+    EC2 Auto Scaling Group"]
+
+    DDB["DynamoDB
+    Weather Cache
+    Saved Reports
+    Gemini Counter"]
+
+    SSM["SSM Parameter Store
+    Gemini SecureString"]
+
+    GEMINI["Google Gemini API"]
+
+    SES["Amazon SES"]
+
+    NWS["National Weather Service"]
+
+    EXTRA["Supplemental Weather API
+    Selected in Phase 3"]
+
+    USER --> ALB
+
+    ALB -->|"8081"| ADVISOR
+    ALB -->|"8080"| WEATHER
+
+    ADVISOR -->|"Normalized facts request"| WEATHER
+
+    WEATHER --> NWS
+    WEATHER --> EXTRA
+    WEATHER --> DDB
+
+    ADVISOR --> DDB
+    ADVISOR --> SSM
+    ADVISOR --> GEMINI
+    ADVISOR --> SES
+
+    SES -->|"Weather Report Email"| USER
